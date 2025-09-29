@@ -11,6 +11,7 @@ export const createTask = async (req, res) => {
     await newTask.save();
     return res.status(201).json({
       id: newTask._id,
+      createdBy: newTask.userId,
       title: newTask.title,
       description: newTask.description,
       message: "Task created successfully",

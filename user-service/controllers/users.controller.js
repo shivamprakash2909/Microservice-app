@@ -28,12 +28,37 @@ export const createUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.find({ email, password });
+    const user = await User.findOne({ email, password });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
+    const token = generateToken(user._id, res);
+
+    return res
+      .status(200)
+      .json({ message: "User logged in successfully", user: { name: user.name, email: user.email } });
   } catch (error) {
     res.status(500).json({ message: "Error logging in user" });
+  }
+};
+export const logOutUser = async (req, res) => {
+  try {
+    res.clearCookie("jwt-token", { httpOnly: true, secure: true, sameSite: "none" });
+    return res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error logging the user" });
+  }
+};
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error Deleting the user" });
   }
 };
 export const getAllUser = async (req, res) => {
@@ -43,4 +68,14 @@ export const getAllUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching users" });
   }
+};
+export const getUserById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ message: "User found", user });
+  } catch (error) {}
 };
