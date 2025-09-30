@@ -2,12 +2,14 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import connectDB from "./lib/db.js";
 import taskRouter from "./routes/task.routes.js";
+import { connectToRabbitMQ } from "./lib/rabbitMQ.js";
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
 const port = 5002;
 connectDB();
+connectToRabbitMQ();
 app.get("/api/tasks/health", (req, res) => {
   res.send(`Task service is healthy, PORT:${port}`);
 });

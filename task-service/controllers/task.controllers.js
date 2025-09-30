@@ -1,5 +1,6 @@
 import { Task } from "../models/task.models.js";
-
+import amqp from "amqplib";
+import { getChannel } from "../lib/rabbitMQ.js";
 export const createTask = async (req, res) => {
   const { title, description } = req.body;
   try {
@@ -9,6 +10,18 @@ export const createTask = async (req, res) => {
       description,
     });
     await newTask.save();
+    const message = {
+      taskId: newTask._id,
+      userId: newTask.userId,
+      title: newTask.title,
+      description: newTask.description,
+    };
+    const channel = getChannel();
+    if (channel) {
+      channel.sendToQueue("Task_queue", Buffer.from(JSON.stringify({ event: "New task Created", message })));
+    } else {
+      console.log("No channel found");
+    }
     return res.status(201).json({
       id: newTask._id,
       createdBy: newTask.userId,
